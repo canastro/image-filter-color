@@ -1,27 +1,11 @@
-function Color(r, g, b, a) {
-    this.r = r;
-    this.g = g;
-    this.b = b;
-    this.a = a;
-}
+var Color = require('./color');
+var ColorInterval = require('./color-interval');
 
-function ColorInterval(rFrom, rTo, gFrom, gTo, bFrom, bTo) {
-    if ((!rFrom || !rTo) && (rFrom > rTo)) {
-        throw 'image-color:: Invalid ColorInterval';
-    }
-
-    if ((!gFrom || !gTo) && (gFrom > gTo)) {
-        throw 'image-color:: Invalid ColorInterval';
-    }
-
-    if ((!bFrom || !bTo) && (bFrom > bTo)) {
-        throw 'image-color:: Invalid ColorInterval';
-    }
-
-    this.from = new Color(rFrom, gFrom, bFrom);
-    this.to = new Color(rTo, gTo, bTo);
-}
-
+/**
+ * @name getCanvas
+ * @param {number} w - width
+ * @param {number} h - height
+ */
 function getCanvas(w, h) {
     var canvas = document.createElement('canvas');
     canvas.width = w;
@@ -30,42 +14,73 @@ function getCanvas(w, h) {
     return canvas;
 }
 
-function getPixels(canvas, ctx, imageData) {
-    ctx.putImageData(imageData, 0, 0);
-    return ctx.getImageData(0, 0, canvas.width, canvas.height);
+/**
+ * @name getPixels
+ * @param {object} canvas
+ * @param {object} context
+ * @param {object} imageData
+ */
+function getPixels(canvas, context, imageData) {
+    context.putImageData(imageData, 0, 0);
+    return context.getImageData(0, 0, canvas.width, canvas.height);
 }
 
-function transform(canvas, context, imageData, colorInterval, match, noMatch) {
+/**
+ * @name applyPixelTransformation
+ * @param {array} pixles
+ * @param {number} index
+ * @param {Color} color
+ */
+function applyPixelTransformation(pixels, index, color) {
+    pixels[index] = color.r || pixels[index];
+    pixels[index + 1] = color.g || pixels[index + 1];
+    pixels[index + 2] = color.b || pixels[index + 2];
+    pixels[index + 3] = color.a || pixels[index + 3];
+}
+
+/**
+ * @name evaluatePixel
+ * @param {array} data
+ * @param {number} index
+ * @param {ColorInterval} colorInterval
+ */
+function evaluatePixel(data, index, colorInterval) {
+
+    var red = data[index];
+    var green = data[index + 1];
+    var blue = data[index + 2];
+    var alpha = data[index + 3];
+
+    if (red >= colorInterval.from.r && red <= colorInterval.to.r &&
+        green >= colorInterval.from.g && green <= colorInterval.to.g &&
+        blue >= colorInterval.from.b && blue <= colorInterval.to.b) {
+
+        if (colorInterval.match) {
+            applyPixelTransformation(data, index, colorInterval.match);
+        }
+        return;
+    }
+
+    if (colorInterval.noMatch) {
+        applyPixelTransformation(data, index, colorInterval.noMatch);
+    }
+
+}
+
+/**
+ * @name transform
+ * @param {object} canvas
+ * @param {object} context
+ * @param {array} imageData
+ * @param {array} colorsInterval
+ */
+function transform(canvas, context, imageData, colorsInterval) {
     var data = imageData.data;
 
     for (var i = 0; i < data.length; i+= 4) {
-
-        var red = data[i];
-        var green = data[i + 1];
-        var blue = data[i + 2];
-        var alpha = data[i + 3];
-
-        if (red >= colorInterval.from.r && red <= colorInterval.to.r &&
-            green >= colorInterval.from.g && green <= colorInterval.to.g &&
-            blue >= colorInterval.from.b && blue <= colorInterval.to.b) {
-
-            if (!match) {
-                continue;
-            }
-
-            data[i] = match.r || red;
-            data[i + 1] = match.g || green;
-            data[i + 2] = match.b || blue;
-            data[i + 3] = match.a || alpha;
-        }
-
-        if (noMatch) {
-            data[i] = noMatch.r || red;
-            data[i + 1] = noMatch.g || green;
-            data[i + 2] = noMatch.b || blue;
-            data[i + 3] = noMatch.a || alpha;
-        }
-
+        colorsInterval.forEach(function(colorInterval) {
+            evaluatePixel(data, i, colorInterval);
+        });
     }
 
     context.putImageData(imageData, 0, 0);
@@ -73,20 +88,20 @@ function transform(canvas, context, imageData, colorInterval, match, noMatch) {
 }
 
 /**
- * @name imageColor
+ * @name applyActions
  * @param {object} options
  * @param {string} options.data - data of a image extracted from a canvas
  * @param {object} options.actions
  * @param {FilterColorAction} options.actions.match
  * @param {stringFilterColorAction} options.actions.noMatch
- * @param {ColorInterval} options.colorInterval
+ * @param {Array[ColorInterval]} options.colorsInterval
  */
-function imageColor(options) {
+function applyActions(options) {
     var result;
     var canvas;
     var context;
 
-    if (!options.data || !options.colorInterval || !options.colorInterval instanceof ColorInterval) {
+    if (!options.data || !options.colorsInterval) {
         throw new Error('image-color:: invalid options provided');
     }
 
@@ -94,7 +109,7 @@ function imageColor(options) {
     context = canvas.getContext('2d');
 
     options.data = getPixels(canvas, context, options.data);
-    result = transform(canvas, context, options.data, options.colorInterval, options.actions.match, options.actions.noMatch);
+    result = transform(canvas, context, options.data, options.colorsInterval);
 
     return result;
 }
@@ -102,5 +117,5 @@ function imageColor(options) {
 module.exports = {
     Color: Color,
     ColorInterval: ColorInterval,
-    imageColor: imageColor
+    applyActions: applyActions
 };
