@@ -1,7 +1,7 @@
 {
-  "name": "image-filter-threshold",
-  "version": "0.0.2",
-  "description": "Small library to apply a threshold transformation to a image",
+  "name": "image-filter-color",
+  "version": "0.0.1",
+  "description": "Small library to apply a color transformation to a image",
   "main": "index.js",
   "scripts": {
     "build": "browserify sandbox/sandbox.js > sandbox/bundle.js"
@@ -10,15 +10,15 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/canastro/image-threshold"
+    "url": "https://github.com/canastro/image-color"
   },
   "bugs": {
-    "url": "https://github.com/canastro/image-threshold/issues"
+    "url": "https://github.com/canastro/image-color/issues"
   },
   "keywords": [
     "image",
-    "image-threshold",
-    "threshold",
+    "image-color",
+    "color",
     "transformation",
     "pixel"
   ],
