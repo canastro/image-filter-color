@@ -13,7 +13,6 @@ function applyResults(selector, src) {
 
 window.onload = function () {
 
-
     var img = new Image;
     img.onload = function(){
         var canvas = document.createElement('canvas');
@@ -24,18 +23,25 @@ window.onload = function () {
 
         var data = context.getImageData(0, 0, img.width, img.height);
 
-        var colorInterval = new ImageColor.ColorInterval({
-            from: new ImageColor.Color(40, 60, 100),
+        var colorIntervalBlue = new ImageColor.ColorInterval({
+            from: new ImageColor.Color(0, 40, 100),
             to: new ImageColor.Color(80, 100, 150),
-            match: new ImageColor.Color(255, 0, 255),
+            match: new ImageColor.Color(0, 255, 255),
             noMatch: new ImageColor.Color(null, null, null, 50)
+        });
+
+        var colorIntervalPink = new ImageColor.ColorInterval({
+            from: new ImageColor.Color(120, 30, 70),
+            to: new ImageColor.Color(150, 60, 100),
+            match: new ImageColor.Color(255, 0, 255, 255)
         });
 
         var results2 = ImageColor.applyActions({
             data: data,
-            colorsInterval: [colorInterval]
+            colorsInterval: [colorIntervalBlue, colorIntervalPink]
         });
         applyResults('#target-1', results2);
+
     };
-    img.src = "https://lh3.googleusercontent.com/UVvaEs6lT9ZDxy6F4el3RLbz9Vb-58XMqi7wGv5EELjJ38tIyCQQljxyjKHKDle6SPztviWHve2ioQoTYXhG1_bQxnfys5OU4Zrcyf8HEypoNSPUJYpc231Ix3q0GHOHhFCUM_4B6eZobfUJeZBLdWADKLbOy6gDVR9jcyy8erDMEdS1humpok3erVte-rcDLUaM6o2dT3-tlRGLR4N9c40bKOwqb-E3CqB3cdfL2XQmt_8F5T3KTJn5EBhr4mlgUfLC2pIxPT5aX6cAu-X31vMXs7wdzFdyRtCDUq03g9j4RNIoxWYncVLp6WD08L7M65lYU4xCzski_RymMdU8iFIYUu3oDs4WBRnCIMgOHBLeVBihKW4Hvbysaa2FLSnsTkHmVLqglq2KHYnGl-aoP0X4-i3mYn4DiKI_vVsqgjx0s-w9FuXvL-P9bLH1x4jor9PyCDSwyMa8XzTGgTJe7moX_71baH92R5aJAlxIDHeIoKdq758nDU25w-cSBHKQcm49oLiGjQw72GzOt4LO8-NjRYGunXWalG20RaBK0lXBEZg3l1Yxq6IN2wKEdlHWBUz9=w1844-h1382-no";
+    img.src = "board.jpg";
 }

@@ -1,6 +1,10 @@
 var Color = require('./color');
 var ColorInterval = require('./color-interval');
 
+function isNullOrUndefined(value) {
+    return value === null || value === undefined;
+}
+
 /**
  * @name getCanvas
  * @param {number} w - width
@@ -32,10 +36,10 @@ function getPixels(canvas, context, imageData) {
  * @param {Color} color
  */
 function applyPixelTransformation(pixels, index, color) {
-    pixels[index] = color.r || pixels[index];
-    pixels[index + 1] = color.g || pixels[index + 1];
-    pixels[index + 2] = color.b || pixels[index + 2];
-    pixels[index + 3] = color.a || pixels[index + 3];
+    pixels[index] = isNullOrUndefined(color.r) ? pixels[index] : color.r;
+    pixels[index + 1] = isNullOrUndefined(color.g) ? pixels[index + 1] : color.g;
+    pixels[index + 2] = isNullOrUndefined(color.b) ? pixels[index + 2] : color.b;
+    pixels[index + 3] = isNullOrUndefined(color.a) ? pixels[index + 3] : color.a;
 }
 
 /**
@@ -54,17 +58,10 @@ function evaluatePixel(data, index, colorInterval) {
     if (red >= colorInterval.from.r && red <= colorInterval.to.r &&
         green >= colorInterval.from.g && green <= colorInterval.to.g &&
         blue >= colorInterval.from.b && blue <= colorInterval.to.b) {
-
-        if (colorInterval.match) {
-            applyPixelTransformation(data, index, colorInterval.match);
-        }
-        return;
+        return true;
     }
 
-    if (colorInterval.noMatch) {
-        applyPixelTransformation(data, index, colorInterval.noMatch);
-    }
-
+    return false;
 }
 
 /**
@@ -79,7 +76,13 @@ function transform(canvas, context, imageData, colorsInterval) {
 
     for (var i = 0; i < data.length; i+= 4) {
         colorsInterval.forEach(function(colorInterval) {
-            evaluatePixel(data, i, colorInterval);
+            var isMatch = evaluatePixel(data, i, colorInterval);
+
+            if (isMatch && colorInterval.match) {
+                applyPixelTransformation(data, i, colorInterval.match);
+            } else if(!isMatch && colorInterval.noMatch) {
+                applyPixelTransformation(data, i, colorInterval.noMatch);
+            }
         });
     }
 
