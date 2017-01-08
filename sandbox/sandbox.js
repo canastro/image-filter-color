@@ -1,47 +1,47 @@
-var ImageColor = require('../index');
+var imageFilterCore = require('image-filter-core');
+var imageFilterColor = require('../src/index');
+var ColorInterval = require('../src/color-interval');
 
-function applyResults(selector, src) {
-    var target;
-    var image;
-
-    target = document.querySelectorAll(selector)[0];
-
-    image = document.createElement('img');
-    image.setAttribute('src', src);
+function applyResults(selector, canvas, context, src) {
+    var target = document.querySelectorAll(selector)[0];
+    var image = document.createElement('img');
+    image.setAttribute('src', imageFilterCore.convertImageDataToCanvasURL(src));
     target.appendChild(image);
 }
 
 window.onload = function () {
-
     var img = new Image;
-    img.onload = function(){
+    img.onload = function () {
         var canvas = document.createElement('canvas');
         canvas.width = img.width;
         canvas.height = img.height;
         var context = canvas.getContext('2d');
-        context.drawImage(img,0,0);
+        context.drawImage(img, 0, 0);
 
         var data = context.getImageData(0, 0, img.width, img.height);
 
-        var colorIntervalBlue = new ImageColor.ColorInterval({
-            from: new ImageColor.Color(0, 40, 100),
-            to: new ImageColor.Color(80, 100, 150),
-            match: new ImageColor.Color(0, 255, 255),
-            noMatch: new ImageColor.Color(null, null, null, 50)
+        var colorIntervalBlue = new ColorInterval({
+            from: { r: 0, g: 40, b: 100 },
+            to: { r: 80, g: 100, b: 150 },
+            match: { r: 0, g: 255, b: 255 },
+            noMatch: { r: null, g: null, b: null, a: 200 }
         });
 
-        var colorIntervalPink = new ImageColor.ColorInterval({
-            from: new ImageColor.Color(120, 30, 70),
-            to: new ImageColor.Color(150, 60, 100),
-            match: new ImageColor.Color(255, 0, 255, 255)
+        var colorIntervalPink = new ColorInterval({
+            from: { r: 120, g: 30, b: 70 },
+            to: { r: 150, g: 60, b: 100 },
+            match: { r: 255, g: 0, b: 255, a: 255 }
         });
 
-        var results2 = ImageColor.applyActions({
-            data: data,
+        var options = {
             colorsInterval: [colorIntervalBlue, colorIntervalPink]
-        });
-        applyResults('#target-1', results2);
+        };
 
+        imageFilterColor(data, options, 4)
+            .then(function (results) {
+                applyResults('#target-1', canvas, context, results);
+            });
     };
-    img.src = "board.jpg";
-}
+
+    img.src = 'dummy.jpg';
+};
